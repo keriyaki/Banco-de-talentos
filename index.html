@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Banco de Talentos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo"><span class="logo-dot"></span>Banco de Talentos</div>
+    <nav>
+      <button class="nav-item active" onclick="showPanel('add')" id="nav-add">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6" stroke-linecap="round"/>
+        </svg>Adicionar
+      </button>
+      <button class="nav-item" onclick="showPanel('list')" id="nav-list">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4" stroke-linecap="round"/>
+        </svg>Candidatos
+      </button>
+      <button class="nav-item" onclick="showPanel('stats')" id="nav-stats">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M2 12l4-4 3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>Visão geral
+      </button>
+      <button class="nav-item" onclick="showPanel('setup')" id="nav-setup">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M11.4 3.2l-1.4 1.4M4.6 11.4l-1.4 1.4" stroke-linecap="round"/>
+        </svg>Configurar
+      </button>
+    </nav>
+    <div class="server-status" id="server-status">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Verificando...</span>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ADD -->
+    <div id="panel-add" class="panel active">
+      <div class="page-header">
+        <div class="page-title">Adicionar candidato</div>
+        <div class="page-sub">Faça upload do PDF ou preencha manualmente</div>
+      </div>
+
+      <div id="upload-zone" class="upload-zone"
+        onclick="document.getElementById('pdf-input').click()"
+        ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
+        <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="5" y="3" width="20" height="26" rx="3"/>
+          <path d="M18 3v8h7"/>
+          <path d="M26 24v9M22 28l4-4 4 4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="upload-title" id="upload-title">Enviar currículo em PDF</div>
+        <div class="upload-sub" id="upload-sub">Clique ou arraste — parser local, sem custo de API</div>
+        <div class="upload-progress" id="upload-progress"></div>
+      </div>
+      <input type="file" id="pdf-input" accept="application/pdf" style="display:none" onchange="handleFile(this.files[0])">
+
+      <div id="msg-ai"      class="msg msg-info">Campos preenchidos pelo parser — revise antes de salvar.</div>
+      <div id="msg-success" class="msg msg-success">Candidato adicionado com sucesso!</div>
+      <div id="msg-error"   class="msg msg-error"></div>
+
+      <div class="form-grid">
+        <div class="form-group"><label>Nome completo *</label><input type="text" id="f-nome" placeholder="Ex: Ana Paula Silva"></div>
+        <div class="form-group"><label>Telefone (WhatsApp)</label><input type="text" id="f-tel" placeholder="(41) 99999-0000"></div>
+        <div class="form-group"><label>E-mail</label><input type="email" id="f-email" placeholder="email@exemplo.com"></div>
+        <div class="form-group"><label>Cargo desejado *</label><input type="text" id="f-cargo" placeholder="Ex: Analista de Marketing"></div>
+        <div class="form-group"><label>Área</label>
+          <select id="f-area">
+            <option value="">Selecionar...</option>
+            <option>Tecnologia</option><option>Marketing</option><option>Vendas</option>
+            <option>RH</option><option>Financeiro</option><option>Operações</option>
+            <option>Administrativo</option><option>Outro</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Nível de experiência</label>
+          <select id="f-nivel">
+            <option value="">Selecionar...</option>
+            <option>Estagiário</option><option>Júnior</option><option>Pleno</option>
+            <option>Sênior</option><option>Especialista</option><option>Gerencial</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Status</label>
+          <select id="f-status">
+            <option value="Novo">Novo</option>
+            <option value="Em análise">Em análise</option>
+            <option value="Aprovado">Aprovado</option>
+            <option value="Descartado">Descartado</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Data de recebimento</label><input type="date" id="f-data"></div>
+        <div class="form-group full"><label>Observações / Resumo</label>
+          <textarea id="f-obs" placeholder="Principais habilidades, experiências, observações do recrutador..."></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-primary" onclick="addCandidate()">Salvar candidato</button>
+        <button class="btn-secondary" onclick="clearForm()">Limpar</button>
+      </div>
+    </div>
+
+    <!-- LIST -->
+    <div id="panel-list" class="panel">
+      <div class="page-header">
+        <div class="page-title">Candidatos</div>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Buscar por nome, cargo ou área..." oninput="renderList()">
+        <select id="filter-status" onchange="renderList()" style="width:170px">
+          <option value="">Todos os status</option>
+          <option>Novo</option><option>Em análise</option><option>Aprovado</option><option>Descartado</option>
+        </select>
+      </div>
+      <div class="filter-row" id="area-filters"></div>
+      <div id="candidate-list"></div>
+      <div style="display:flex;gap:8px;margin-top:1.25rem;align-items:center;">
+        <button class="btn-secondary" onclick="exportCSV()">Exportar CSV</button>
+        <span style="font-size:12px;color:var(--text-hint);" id="count-label"></span>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div id="panel-stats" class="panel">
+      <div class="page-header">
+        <div class="page-title">Visão geral</div>
+      </div>
+      <div class="stats-grid" id="stats-grid"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <div><p style="font-size:13px;font-weight:500;color:var(--text-muted);margin-bottom:12px;">Por status</p><div id="chart-status"></div></div>
+        <div><p style="font-size:13px;font-weight:500;color:var(--text-muted);margin-bottom:12px;">Por área</p><div id="chart-area"></div></div>
+      </div>
+    </div>
+
+    <!-- SETUP -->
+    <div id="panel-setup" class="panel">
+      <div class="page-header">
+        <div class="page-title">Configurar</div>
+        <div class="page-sub">Instruções para rodar o backend localmente</div>
+      </div>
+
+      <div class="setup-box">
+        <h3>1. Instalar dependências Python</h3>
+        <p>Abra o terminal na pasta do projeto e execute:</p>
+        <div class="code-block">pip install flask flask-cors pdfplumber spacy</div>
+        <p>Depois instale o modelo de linguagem (português ou inglês):</p>
+        <div class="code-block">python -m spacy download pt_core_news_sm</div>
+      </div>
+
+      <div class="setup-box">
+        <h3>2. Iniciar o servidor</h3>
+        <p>Execute o arquivo <code style="font-family:'DM Mono',monospace;font-size:12px;background:var(--surface2);padding:2px 6px;border-radius:4px;">app.py</code> na mesma pasta:</p>
+        <div class="code-block">python app.py</div>
+        <p>O servidor vai rodar em <strong>http://localhost:5000</strong>. Na primeira execução, o arquivo <code style="font-family:'DM Mono',monospace;font-size:12px;background:var(--surface2);padding:2px 6px;border-radius:4px;">talentos.db</code> é criado automaticamente. Deixe o terminal aberto enquanto usa o app.</p>
+      </div>
+
+      <div class="setup-box">
+        <h3>3. Abrir o frontend</h3>
+        <p>Abra este arquivo HTML no navegador normalmente (duplo clique ou via VSCode Live Server). O frontend vai se conectar automaticamente ao backend local.</p>
+        <p>O indicador no menu lateral mostra se o servidor está online.</p>
+      </div>
+
+      <div class="setup-box" style="border-color: rgba(122,74,0,0.2); background: var(--amber-bg);">
+        <h3 style="color: var(--amber-txt);">Dica: Estrutura de arquivos</h3>
+        <div class="code-block">projeto/
+├── app.py          ← backend Flask
+├── index.html      ← este arquivo
+└── talentos.db     ← criado automaticamente (SQLite)</div>
+        <p style="margin-top:0.75rem;">Os dados ficam no <strong>talentos.db</strong> — você pode copiar, fazer backup ou mover entre máquinas.</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Candidato</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+    <div style="display:flex;gap:8px;margin-top:1.25rem;flex-wrap:wrap;">
+      <select id="modal-status" style="flex:1;min-width:130px;font-family:'DM Sans',sans-serif;">
+        <option>Novo</option><option>Em análise</option><option>Aprovado</option><option>Descartado</option>
+      </select>
+      <button class="btn-primary" onclick="updateStatus()">Atualizar status</button>
+      <button class="btn-danger" onclick="deleteCandidate()">Remover</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = "http://localhost:5000";
+
+  let candidates = [];
+  let selectedId = null;
+  let activeAreaFilter = "";
+
+  const COLORS = [
+    {bg:"#e3edf8",txt:"#1a3d6b"},{bg:"#e4f2e4",txt:"#1a5c1a"},
+    {bg:"#fdf0d8",txt:"#7a4a00"},{bg:"#fce8e8",txt:"#7a1f1f"},
+    {bg:"#ede8f8",txt:"#3a1f7a"},{bg:"#e8f5e4",txt:"#1a5c2a"},
+    {bg:"#fde8f0",txt:"#7a1f4a"}
+  ];
+
+  // ─── API helpers ───────────────────────────────────────────────────────────
+  async function apiFetch(path, opts={}){
+    const res = await fetch(API_URL + path, {
+      headers: {'Content-Type':'application/json'},
+      ...opts
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || `Erro ${res.status}`);
+    return data;
+  }
+
+  async function loadCandidates(){
+    try {
+      candidates = await apiFetch('/candidates');
+    } catch(e) {
+      candidates = [];
+    }
+  }
+
+  // ─── Verificação do servidor ───────────────────────────────────────────────
+  async function checkServer(){
+    const dot  = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    try {
+      const res = await fetch(`${API_URL}/health`, {signal: AbortSignal.timeout(2000)});
+      if(res.ok){
+        dot.className  = 'status-dot online';
+        text.textContent = 'Servidor online';
+        return true;
+      }
+    } catch(e){}
+    dot.className  = 'status-dot offline';
+    text.textContent = 'Servidor offline';
+    return false;
+  }
+  checkServer();
+  setInterval(checkServer, 10000);
+
+  // ─── Navegação ─────────────────────────────────────────────────────────────
+  function showPanel(p){
+    ['add','list','stats','setup'].forEach(id=>{
+      document.getElementById('panel-'+id).classList.toggle('active', id===p);
+      document.getElementById('nav-'+id).classList.toggle('active', id===p);
+    });
+    if(p==='list'){ loadCandidates().then(()=>{ renderAreaFilters(); renderList(); }); }
+    if(p==='stats') loadCandidates().then(renderStats);
+  }
+
+  // ─── Upload ────────────────────────────────────────────────────────────────
+  function onDrag(e,over){ e.preventDefault(); document.getElementById('upload-zone').classList.toggle('drag',over); }
+  function onDrop(e){ e.preventDefault(); onDrag(e,false); const f=e.dataTransfer.files[0]; if(f) handleFile(f); }
+
+  function setProgress(msg, spin=false){
+    const el = document.getElementById('upload-progress');
+    el.innerHTML = spin ? `<span class="spinner"></span>${msg}` : msg;
+  }
+
+  async function handleFile(file){
+    if(!file || file.type !== 'application/pdf'){ showMsg('error','Por favor, envie um arquivo PDF válido.'); return; }
+
+    const online = await checkServer();
+    if(!online){
+      showMsg('error','Servidor offline. Inicie o app.py e tente novamente. Veja a aba "Configurar".');
+      return;
+    }
+
+    const zone = document.getElementById('upload-zone');
+    zone.classList.add('loading');
+    document.getElementById('upload-title').textContent = file.name;
+    document.getElementById('upload-sub').textContent = 'Processando...';
+    setProgress('Extraindo dados do PDF...', true);
+    hideMessages();
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${API_URL}/parse`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || `Erro ${res.status}`);
+      fillForm(data);
+      setProgress('');
+      document.getElementById('upload-sub').textContent = 'PDF processado com sucesso';
+      zone.classList.remove('loading');
+      showMsg('ai');
+    } catch(err){
+      zone.classList.remove('loading');
+      document.getElementById('upload-title').textContent = 'Enviar currículo em PDF';
+      document.getElementById('upload-sub').textContent = 'Clique ou arraste o arquivo aqui';
+      setProgress('');
+      showMsg('error', 'Erro: ' + err.message);
+      document.getElementById('pdf-input').value = '';
+    }
+  }
+
+  function fillForm(d){
+    [['f-nome',d.nome],['f-email',d.email],['f-tel',d.telefone],['f-cargo',d.cargo],['f-obs',d.resumo]]
+      .forEach(([id,val])=>{ const el=document.getElementById(id); if(val){ el.value=val; el.classList.add('ai-filled'); } });
+    const areaOpts = ['Tecnologia','Marketing','Vendas','RH','Financeiro','Operações','Administrativo','Outro'];
+    if(d.area && areaOpts.includes(d.area)) document.getElementById('f-area').value = d.area;
+    const nivelOpts = ['Estagiário','Júnior','Pleno','Sênior','Especialista','Gerencial'];
+    if(d.nivel && nivelOpts.includes(d.nivel)) document.getElementById('f-nivel').value = d.nivel;
+  }
+
+  // ─── Mensagens ─────────────────────────────────────────────────────────────
+  function showMsg(type, text){
+    hideMessages();
+    const map = {ai:'msg-ai', success:'msg-success', error:'msg-error'};
+    const el = document.getElementById(map[type]);
+    if(text) el.textContent = text;
+    el.style.display = 'block';
+  }
+  function hideMessages(){
+    ['msg-ai','msg-success','msg-error'].forEach(id=>document.getElementById(id).style.display='none');
+  }
+
+  // ─── Form ──────────────────────────────────────────────────────────────────
+  async function addCandidate(){
+    const nome = document.getElementById('f-nome').value.trim();
+    const cargo = document.getElementById('f-cargo').value.trim();
+    if(!nome||!cargo){ alert('Nome e cargo são obrigatórios.'); return; }
+    try {
+      await apiFetch('/candidates', {
+        method: 'POST',
+        body: JSON.stringify({
+          nome, cargo,
+          area:   document.getElementById('f-area').value,
+          nivel:  document.getElementById('f-nivel').value,
+          tel:    document.getElementById('f-tel').value.trim(),
+          email:  document.getElementById('f-email').value.trim(),
+          status: document.getElementById('f-status').value,
+          data:   document.getElementById('f-data').value,
+          obs:    document.getElementById('f-obs').value.trim()
+        })
+      });
+      clearForm();
+      showMsg('success','Candidato adicionado com sucesso!');
+      setTimeout(hideMessages, 2500);
+    } catch(e) {
+      showMsg('error', 'Erro ao salvar: ' + e.message);
+    }
+  }
+
+  function clearForm(){
+    ['f-nome','f-tel','f-email','f-cargo','f-obs'].forEach(id=>{ const el=document.getElementById(id); el.value=''; el.classList.remove('ai-filled'); });
+    ['f-area','f-nivel'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-status').value='Novo';
+    document.getElementById('f-data').value=new Date().toISOString().slice(0,10);
+    document.getElementById('upload-title').textContent='Enviar currículo em PDF';
+    document.getElementById('upload-sub').textContent='Clique ou arraste — parser local, sem custo de API';
+    document.getElementById('upload-zone').classList.remove('loading','drag');
+    document.getElementById('pdf-input').value='';
+    hideMessages();
+  }
+
+  // ─── Lista ─────────────────────────────────────────────────────────────────
+  function getInitials(n){ return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+  function statusBadge(s){ const m={Novo:'badge-blue','Em análise':'badge-amber',Aprovado:'badge-green',Descartado:'badge-gray'}; return `<span class="badge ${m[s]||'badge-gray'}">${s}</span>`; }
+  function fmtDate(d){ if(!d)return''; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+
+  function renderAreaFilters(){
+    const areas=[...new Set(candidates.map(c=>c.area).filter(Boolean))];
+    document.getElementById('area-filters').innerHTML=
+      `<button class="chip ${activeAreaFilter===''?'active':''}" onclick="setAreaFilter('')">Todas</button>`+
+      areas.map(a=>`<button class="chip ${activeAreaFilter===a?'active':''}" onclick="setAreaFilter('${a}')">${a}</button>`).join('');
+  }
+  function setAreaFilter(a){ activeAreaFilter=a; renderAreaFilters(); renderList(); }
+
+  function renderList(){
+    const q=(document.getElementById('search-input').value||'').toLowerCase();
+    const st=document.getElementById('filter-status').value;
+    const filtered=candidates.filter(c=>{
+      const m=c.nome.toLowerCase().includes(q)||c.cargo.toLowerCase().includes(q)||(c.area||'').toLowerCase().includes(q);
+      return m&&(!st||c.status===st)&&(!activeAreaFilter||c.area===activeAreaFilter);
+    });
+    document.getElementById('count-label').textContent=`${filtered.length} candidato${filtered.length!==1?'s':''} encontrado${filtered.length!==1?'s':''}`;
+    const div=document.getElementById('candidate-list');
+    if(!filtered.length){ div.innerHTML=`<div class="empty">${candidates.length?'Nenhum encontrado.':'Nenhum candidato cadastrado ainda.'}</div>`; return; }
+    div.innerHTML=filtered.map((c,i)=>{
+      const av=COLORS[i%COLORS.length];
+      return `<div class="candidate-card" onclick="openModal(${c.id})">
+        <div class="avatar" style="background:${av.bg};color:${av.txt}">${getInitials(c.nome)}</div>
+        <div class="info">
+          <div class="info-name">${c.nome}</div>
+          <div class="info-sub">${c.cargo}${c.area?' · '+c.area:''}${c.nivel?' · '+c.nivel:''}</div>
+          <div class="info-tags">${statusBadge(c.status)}${c.data?`<span class="badge badge-gray">${fmtDate(c.data)}</span>`:''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ─── Modal ─────────────────────────────────────────────────────────────────
+  function openModal(id){
+    selectedId=id;
+    const c=candidates.find(x=>x.id===id); if(!c)return;
+    const av=COLORS[candidates.indexOf(c)%COLORS.length];
+    document.getElementById('modal-title').textContent=c.nome;
+    const rows=[['Cargo',c.cargo],['Área',c.area||'—'],['Nível',c.nivel||'—'],['Telefone',c.tel||'—'],['E-mail',c.email||'—'],['Recebido',c.data?fmtDate(c.data):'—'],['Observações',c.obs||'—']];
+    document.getElementById('modal-body').innerHTML=
+      `<div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
+        <div class="avatar" style="background:${av.bg};color:${av.txt}">${getInitials(c.nome)}</div>
+        <div>${statusBadge(c.status)}</div>
+      </div>`+
+      rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-value">${v}</span></div>`).join('');
+    document.getElementById('modal-status').value=c.status;
+    document.getElementById('modal').classList.add('open');
+  }
+  function closeModal(){ document.getElementById('modal').classList.remove('open'); selectedId=null; }
+  document.getElementById('modal').addEventListener('click',e=>{ if(e.target===document.getElementById('modal')) closeModal(); });
+
+  async function updateStatus(){
+    const c=candidates.find(x=>x.id===selectedId);
+    if(c){
+      try {
+        await apiFetch(`/candidates/${selectedId}`, {
+          method: 'PUT',
+          body: JSON.stringify({status: document.getElementById('modal-status').value})
+        });
+      } catch(e) { alert('Erro ao atualizar: ' + e.message); return; }
+    }
+    closeModal();
+    await loadCandidates();
+    renderList(); renderStats();
+  }
+
+  async function deleteCandidate(){
+    if(!confirm('Remover este candidato?')) return;
+    try {
+      await apiFetch(`/candidates/${selectedId}`, {method:'DELETE'});
+    } catch(e) { alert('Erro ao remover: ' + e.message); return; }
+    closeModal();
+    await loadCandidates();
+    renderAreaFilters(); renderList(); renderStats();
+  }
+
+  // ─── Export ────────────────────────────────────────────────────────────────
+  function exportCSV(){
+    if(!candidates.length){ alert('Nenhum candidato para exportar.'); return; }
+    const header=['Nome','Cargo','Área','Nível','Telefone','E-mail','Status','Data','Observações'];
+    const rows=candidates.map(c=>[c.nome,c.cargo,c.area,c.nivel,c.tel,c.email,c.status,c.data,c.obs].map(v=>`"${(v||'').replace(/"/g,'""')}"`));
+    const csv=[header,...rows].map(r=>r.join(',')).join('\n');
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='banco_de_talentos.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ─── Stats ─────────────────────────────────────────────────────────────────
+  function renderStats(){
+    document.getElementById('stats-grid').innerHTML=[
+      ['Total', candidates.length],
+      ['Novos', candidates.filter(c=>c.status==='Novo').length],
+      ['Em análise', candidates.filter(c=>c.status==='Em análise').length],
+      ['Aprovados', candidates.filter(c=>c.status==='Aprovado').length]
+    ].map(([l,v])=>`<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-value">${v}</div></div>`).join('');
+    const sc={},ac={};
+    candidates.forEach(c=>{ sc[c.status]=(sc[c.status]||0)+1; if(c.area) ac[c.area]=(ac[c.area]||0)+1; });
+    const barColors={Novo:'#3a7bd5',Aprovado:'#2d8c3e','Em análise':'#c97a10',Descartado:'#999'};
+    function barChart(data,container){
+      const max=Math.max(...Object.values(data),1);
+      document.getElementById(container).innerHTML=Object.entries(data).sort((a,b)=>b[1]-a[1]).map(([k,v],i)=>`
+        <div class="bar-item">
+          <div class="bar-header"><span>${k}</span><span>${v}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/max*100)}%;background:${barColors[k]||COLORS[i%COLORS.length].txt}"></div></div>
+        </div>`).join('');
+    }
+    if(Object.keys(sc).length) barChart(sc,'chart-status');
+    else document.getElementById('chart-status').innerHTML='<p style="font-size:13px;color:var(--text-hint);">Sem dados.</p>';
+    if(Object.keys(ac).length) barChart(ac,'chart-area');
+    else document.getElementById('chart-area').innerHTML='<p style="font-size:13px;color:var(--text-hint);">Sem dados.</p>';
+  }
+
+  // ─── Init ──────────────────────────────────────────────────────────────────
+  document.getElementById('f-data').value=new Date().toISOString().slice(0,10);
+  loadCandidates().then(renderStats);
+</script>
+</body>
+</html>
