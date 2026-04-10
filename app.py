@@ -11,7 +11,7 @@ Uso:
     python app.py
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pdfplumber
 import spacy
@@ -21,7 +21,11 @@ import os
 import sqlite3
 from datetime import date
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder=".",  # serve arquivos da raiz
+    static_url_path=""  # permite acessar direto /style.css
+)
 CORS(app)
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "talentos.db")
@@ -397,10 +401,14 @@ def health():
         "db": DB_PATH,
     })
 
+@app.route("/")
+def index():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(base_dir, "index.html")
 
 if __name__ == "__main__":
     print("\n=== Banco de Talentos — Backend ===")
     print(f"Banco de dados: {DB_PATH}")
     print("API em: http://localhost:5000")
     print("Pressione Ctrl+C para parar\n")
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
